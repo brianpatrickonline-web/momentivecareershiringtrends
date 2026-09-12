@@ -1,35 +1,39 @@
+
+Weekly refresh · YML
 # Rebuilds the dashboard from fresh Indeed data and deploys it to Netlify.
 # Runs automatically every Monday at 12:00 UTC, and can be run on-demand
 # from the GitHub "Actions" tab via the "Run workflow" button.
 name: Weekly hiring-demand refresh
-
+ 
 on:
   schedule:
     - cron: "0 12 * * 1"      # every Monday 12:00 UTC (~7-8am US Eastern)
   workflow_dispatch: {}         # manual "Run workflow" button
-
+ 
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    env:
-      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
       - name: Get the code
         uses: actions/checkout@v4
-
+ 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
+ 
       - name: Install dependencies
         run: pip install pandas
-
+ 
       - name: Rebuild dashboard from fresh Indeed data
         run: python hiring_demand_engine.py
-
+ 
       - name: Deploy to Netlify
         run: |
           npm install -g netlify-cli
-          netlify deploy --prod --dir=.
+          netlify deploy --prod --dir=. \
+            --site=58bdca5e-d5ec-4b13-9b77-c051c9805ea9 \
+            --auth="$NETLIFY_AUTH_TOKEN"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+ 
